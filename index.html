@@ -5,274 +5,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cultura Alternativa — NYC vs París</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #0e0e0e;
-      --surface: #161616;
-      --surface2: #1f1f1f;
-      --border: rgba(255,255,255,0.08);
-      --text: #f0ede8;
-      --muted: rgba(240,237,232,0.45);
-      --accent: #e8d5b0;
-
-      --c-music: #c084fc;
-      --c-gallery: #f87171;
-      --c-market: #4ade80;
-      --c-books: #fbbf24;
-      --c-multi: #60a5fa;
-      --c-tourist: #94a3b8;
+      --bg: #E0C99A; --surface: #4a4a4a; --surface2: #656565;
+      --border: rgba(255,255,255,0.1); --text: #e0e0e0;
+      --muted: rgba(240,237,232,0.45); --accent: #e0c99a;
+      --c-music: #c084fc; --c-gallery: #f87171; --c-market: #4ade80;
+      --c-books: #9e6502; --c-multi: #60a5fa; --c-tourist: #000000;
     }
-
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    /* HEADER */
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 1.5rem;
-      height: 52px;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-      background: var(--surface);
-    }
-
-    .header-left {
-      display: flex;
-      align-items: baseline;
-      gap: 0.75rem;
-    }
-
-    .logo {
-      font-family: 'DM Mono', monospace;
-      font-size: 13px;
-      letter-spacing: 0.12em;
-      color: var(--accent);
-      text-transform: uppercase;
-    }
-
-    .tagline {
-      font-size: 11px;
-      color: var(--muted);
-      font-family: 'DM Mono', monospace;
-    }
-
-    /* CITY TOGGLE */
-    .city-toggle {
-      display: flex;
-      gap: 4px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 3px;
-    }
-
-    .city-btn {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.08em;
-      padding: 5px 14px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      background: transparent;
-      color: var(--muted);
-      transition: all 0.2s;
-      text-transform: uppercase;
-    }
-
-    .city-btn.active {
-      background: var(--surface2);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    header { display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; height: 52px; border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--surface); }
+    .header-left { display: flex; align-items: baseline; gap: 0.75rem; }
+    .logo { font-family: 'DM Mono', monospace; font-size: 15px; letter-spacing: 0.12em; color: var(--accent); text-transform: uppercase; }
+    .tagline { font-size: 16px; color: var(--muted); font-family: 'DM Mono', monospace; }
+    .city-toggle { display: flex; gap: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 3px; }
+    .city-btn { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 5px 14px; border: none; border-radius: 4px; cursor: pointer; background: transparent; color: var(--muted); transition: all 0.2s; text-transform: uppercase; }
+    .city-btn.active { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
     .city-btn:hover:not(.active) { color: var(--text); }
-
-    /* RESEARCH QUESTION */
-    .research-bar {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 8px 1.5rem;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .rq-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      color: var(--accent);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      flex-shrink: 0;
-    }
-
-    .rq-text {
-      font-size: 12px;
-      color: var(--muted);
-      font-style: italic;
-    }
-
-    /* MAIN LAYOUT */
-    .main {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
-
-    /* SIDEBAR */
-    .sidebar {
-      width: 220px;
-      flex-shrink: 0;
-      background: var(--surface);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-    }
-
-    .sidebar-section {
-      padding: 1rem 1rem 0.5rem;
-      border-bottom: 1px solid var(--border);
-    }
-
+    .research-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 8px 1.5rem; flex-shrink: 0; display: flex; align-items: center; gap: 0.75rem; }
+    .rq-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; flex-shrink: 0; }
+    .rq-text { font-size: 12px; color: var(--muted); font-style: italic; }
+    .main { display: flex; flex: 1; overflow: hidden; }
+    .sidebar { width: 220px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+    .sidebar-section { padding: 1rem 1rem 0.5rem; border-bottom: 1px solid var(--border); }
     .sidebar-section:last-child { border-bottom: none; }
-
-    .section-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 9px;
-      letter-spacing: 0.15em;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-bottom: 0.75rem;
-    }
-
-    /* LAYER TOGGLES */
-    .layer-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 0;
-      cursor: pointer;
-      transition: opacity 0.15s;
-    }
-
+    .section-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; margin-bottom: 0.75rem; }
+    .layer-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; cursor: pointer; transition: opacity 0.15s; }
     .layer-item.off { opacity: 0.35; }
-
-    .layer-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .layer-name {
-      font-size: 12px;
-      color: var(--text);
-      flex: 1;
-    }
-
-    .layer-count {
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      color: var(--muted);
-    }
-
-    /* STATS */
-    .stat-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      padding: 5px 0;
-    }
-
+    .layer-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .layer-name { font-size: 12px; color: var(--text); flex: 1; }
+    .layer-count { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+    .stat-row { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; }
     .stat-label { font-size: 11px; color: var(--muted); }
+    .stat-value { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--accent); }
+    .source-item { font-size: 10px; color: var(--muted); padding: 3px 0; font-family: 'DM Mono', monospace; }
+    .map-wrapper { flex: 1; position: relative; }
+    #map { width: 100%; height: 100%; }
+    .leaflet-container { background: #2a2a2a !important; }
 
-    .stat-value {
-      font-family: 'DM Mono', monospace;
-      font-size: 13px;
-      color: var(--accent);
-    }
-
-    /* SOURCES */
-    .source-item {
-      font-size: 10px;
-      color: var(--muted);
-      padding: 3px 0;
-      font-family: 'DM Mono', monospace;
-    }
-
-    /* MAP */
-    #map {
-      flex: 1;
-      background: #111;
-    }
-
-    /* POPUP */
-    .info-popup {
-      position: absolute;
-      bottom: 1.5rem;
-      right: 1.5rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1rem 1.25rem;
-      max-width: 260px;
-      display: none;
-      z-index: 10;
-    }
-
+    .info-popup { position: absolute; top: 1.5rem; right: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; max-width: 260px; display: none; z-index: 1000; }
     .info-popup.visible { display: block; }
-
-    .popup-type {
-      font-family: 'DM Mono', monospace;
-      font-size: 9px;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-
-    .popup-name {
-      font-size: 14px;
-      font-weight: 500;
-      margin-bottom: 4px;
-    }
-
-    .popup-desc {
-      font-size: 11px;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    .popup-close {
-      position: absolute;
-      top: 8px;
-      right: 10px;
-      cursor: pointer;
-      color: var(--muted);
-      font-size: 16px;
-      background: none;
-      border: none;
-      color: var(--muted);
-    }
-
-    /* MAP CONTAINER RELATIVE */
-    .map-wrapper {
-      flex: 1;
-      position: relative;
-    }
+    .popup-type { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 4px; }
+    .popup-name { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+    .popup-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+    .popup-close { position: absolute; top: 8px; right: 10px; cursor: pointer; font-size: 16px; background: none; border: none; color: var(--muted); }
   </style>
 </head>
 <body>
@@ -290,15 +69,13 @@
 
 <div class="research-bar">
   <span class="rq-label">RQ</span>
-  <span class="rq-text">¿Se distribuye la cultura alternativa lejos de los centros turísticos, o coexiste con ellos?</span>
+  <span class="rq-text">¿Se distribuye la cultura alternativa lejos de los centros turísticos, o coexiste con ellos? Comparativa entre dos grandes ciudades de distintos continentes</span>
 </div>
 
 <div class="main">
   <div class="sidebar">
-
     <div class="sidebar-section">
       <div class="section-label">Capas</div>
-
       <div class="layer-item" id="layer-music" onclick="toggleLayer('music')">
         <div class="layer-dot" style="background:var(--c-music)"></div>
         <span class="layer-name">Música en vivo</span>
@@ -330,38 +107,24 @@
         <span class="layer-count" id="cnt-tourist">—</span>
       </div>
     </div>
-
     <div class="sidebar-section">
       <div class="section-label">Estadísticas</div>
-      <div class="stat-row">
-        <span class="stat-label">Ciudad activa</span>
-        <span class="stat-value" id="stat-city">NYC</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">Puntos totales</span>
-        <span class="stat-value" id="stat-total">—</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">Capas visibles</span>
-        <span class="stat-value" id="stat-layers">6/6</span>
-      </div>
+      <div class="stat-row"><span class="stat-label">Ciudad activa</span><span class="stat-value" id="stat-city">NYC</span></div>
+      <div class="stat-row"><span class="stat-label">Puntos totales</span><span class="stat-value" id="stat-total">—</span></div>
+      <div class="stat-row"><span class="stat-label">Capas visibles</span><span class="stat-value" id="stat-layers">6/6</span></div>
     </div>
-
     <div class="sidebar-section">
       <div class="section-label">Fuentes de datos</div>
       <div class="source-item">NYC Open Data</div>
       <div class="source-item">Paris Open Data</div>
       <div class="source-item">OpenStreetMap</div>
-      <div class="source-item">Google Maps API</div>
     </div>
-
     <div class="sidebar-section">
       <div class="section-label">Autora</div>
       <div class="source-item">Mónica Fernández Lortal</div>
       <div class="source-item">TIG · Ingeniería de Datos</div>
       <div class="source-item">Junio 2026</div>
     </div>
-
   </div>
 
   <div class="map-wrapper">
@@ -376,11 +139,9 @@
 </div>
 
 <script>
-// ── DATOS ──────────────────────────────────────────────────────────────────
 const DATA = {
   nyc: {
-    center: { lat: 40.7128, lng: -74.006 },
-    zoom: 12,
+    center: [40.7128, -74.006], zoom: 12,
     music: [
       { lat: 40.7221, lng: -73.9867, name: "Mercury Lounge", desc: "Sala indie emblemática del Lower East Side desde 1993. Capacidad 250 personas." },
       { lat: 40.7742, lng: -73.9629, name: "Café Carlyle", desc: "Jazz íntimo en el Upper East Side, fuera del circuito masivo." },
@@ -393,39 +154,33 @@ const DATA = {
     ],
     gallery: [
       { lat: 40.8085, lng: -73.9473, name: "Studio Museum in Harlem", desc: "Museo-galería referente del arte afroamericano y de la diáspora africana. 144 W 125th St, Harlem." },
-      { lat: 40.7475, lng: -74.0058, name: "Dia Chelsea", desc: "Institución de arte contemporáneo en Chelsea conocida por instalaciones a gran escala de Serra, Hesse o Flavin. 535 W 22nd St." },
-      { lat: 40.7189, lng: -73.9861, name: "ABC No Rio", desc: "Centro cultural autogestionado en el Lower East Side: galería, zine library y talleres DIY desde 1980. 107 Suffolk St." },
-      { lat: 40.7176, lng: -74.0022, name: "Artists Space", desc: "Espacio alternativo pionero para artistas emergentes en Tribeca desde 1972. Sin ánimo de lucro. 80 White St." },
-      { lat: 40.7025, lng: -73.9890, name: "DUMBO Arts Center", desc: "Centro de artes con galería y estudios en DUMBO. Programas de residencia y arte experimental. 111 Front St." },
-      { lat: 40.6771, lng: -74.0132, name: "Kentler International Drawing Space", desc: "Galería especializada en dibujo contemporáneo en Red Hook con programación internacional. 353 Van Brunt St." },
-      { lat: 40.7144, lng: -73.9348, name: "ISCP (International Studio & Curatorial Program)", desc: "Centro de residencias artísticas internacionales en East Williamsburg. 35 estudios para artistas de todo el mundo." },
-      { lat: 40.7055, lng: -73.9334, name: "Momenta Art", desc: "Espacio sin ánimo de lucro para arte contemporáneo experimental en Bushwick. 56 Bogart St." },
+      { lat: 40.7475, lng: -74.0058, name: "Dia Chelsea", desc: "Institución de arte contemporáneo en Chelsea conocida por instalaciones a gran escala. 535 W 22nd St." },
+      { lat: 40.7189, lng: -73.9861, name: "ABC No Rio", desc: "Centro cultural autogestionado en el Lower East Side: galería, zine library y talleres DIY desde 1980." },
+      { lat: 40.7176, lng: -74.0022, name: "Artists Space", desc: "Espacio alternativo pionero para artistas emergentes en Tribeca desde 1972. Sin ánimo de lucro." },
+      { lat: 40.7025, lng: -73.9890, name: "DUMBO Arts Center", desc: "Centro de artes con galería y estudios en DUMBO. Programas de residencia y arte experimental." },
+      { lat: 40.6771, lng: -74.0132, name: "Kentler Drawing Space", desc: "Galería especializada en dibujo contemporáneo en Red Hook con programación internacional." },
+      { lat: 40.7144, lng: -73.9348, name: "ISCP", desc: "Centro de residencias artísticas internacionales en East Williamsburg. 35 estudios para artistas de todo el mundo." },
+      { lat: 40.7055, lng: -73.9334, name: "Momenta Art", desc: "Espacio sin ánimo de lucro para arte contemporáneo experimental en Bushwick." }
     ],
     market: [
-      { lat: 40.8089, lng: -73.9476, name: "Harlem Health Market", desc: "Mercado de agricultores en el corazón de Harlem. 163 W 125th St. Sábados 9am–4pm." },
-      { lat: 40.7743, lng: -73.9513, name: "82nd Street Greenmarket", desc: "Mercado de productores en el Upper East Side. 82nd St & York Ave. Sábados 9am–2:30pm. Abierto todo el año." },
-      { lat: 40.7691, lng: -73.9886, name: "57th Street Greenmarket", desc: "Mercado de agricultores locales en Hell's Kitchen. 57th St & 10th Ave. Sábados 8am–3pm." },
-      { lat: 40.7459, lng: -74.0000, name: "Down to Earth Chelsea Farmers Market", desc: "Mercado de proximidad en Chelsea con productores locales. 355 W 23rd St. Sábados 9am–2pm." },
-      { lat: 40.7152, lng: -73.9843, name: "Lower East Side Farmstand", desc: "Puesto de agricultores frente al Abrons Arts Center. Grand St & Pitt St. Viernes 9am–1:30pm." },
-      { lat: 40.7163, lng: -74.0110, name: "Tribeca Greenmarket", desc: "Mercado de productores en Tribeca. Greenwich & Chambers Sts. Sábados 8am–2pm. Abierto todo el año." },
-      { lat: 40.7070, lng: -73.9614, name: "South Williamsburg Greenmarket", desc: "Mercado de agricultores en South Williamsburg. Taylor St & Lee Ave. Jueves 8am–4pm." },
-      { lat: 40.6725, lng: -74.0087, name: "Red Hook Farm Stand", desc: "Puesto agrícola en el barrio portuario de Red Hook. 560 Columbia St. Sábados 10am–2pm." },
-      { lat: 40.7028, lng: -73.9254, name: "Bushwick Farmers' Market (Maria Hernandez Park)", desc: "Mercado comunitario en el Parque María Hernández, Bushwick. Knickerbocker & Starr St. Sábados 9am–4pm." },
-      { lat: 40.7677, lng: -73.9325, name: "Astoria Greenmarket", desc: "Mercado de agricultores en Astoria, Queens. 14th St bet 31st Ave & 31st Rd. Miércoles 8am–3pm." },
+      { lat: 40.8089, lng: -73.9476, name: "Harlem Health Market", desc: "Mercado de agricultores en el corazón de Harlem. Sábados 9am–4pm." },
+      { lat: 40.7743, lng: -73.9513, name: "82nd Street Greenmarket", desc: "Mercado de productores en el Upper East Side. Sábados 9am–2:30pm." },
+      { lat: 40.7691, lng: -73.9886, name: "57th Street Greenmarket", desc: "Mercado de agricultores locales en Hell's Kitchen. Sábados 8am–3pm." },
+      { lat: 40.7459, lng: -74.0000, name: "Chelsea Farmers Market", desc: "Mercado de proximidad en Chelsea con productores locales. Sábados 9am–2pm." },
+      { lat: 40.7152, lng: -73.9843, name: "Lower East Side Farmstand", desc: "Puesto de agricultores frente al Abrons Arts Center. Viernes 9am–1:30pm." },
+      { lat: 40.7163, lng: -74.0110, name: "Tribeca Greenmarket", desc: "Mercado de productores en Tribeca. Sábados 8am–2pm. Abierto todo el año." },
+      { lat: 40.7070, lng: -73.9614, name: "South Williamsburg Greenmarket", desc: "Mercado de agricultores en South Williamsburg. Jueves 8am–4pm." },
+      { lat: 40.6725, lng: -74.0087, name: "Red Hook Farm Stand", desc: "Puesto agrícola en el barrio portuario de Red Hook. Sábados 10am–2pm." },
+      { lat: 40.7028, lng: -73.9254, name: "Bushwick Farmers Market", desc: "Mercado comunitario en el Parque María Hernández, Bushwick. Sábados 9am–4pm." },
+      { lat: 40.7677, lng: -73.9325, name: "Astoria Greenmarket", desc: "Mercado de agricultores en Astoria, Queens. Miércoles 8am–3pm." }
     ],
     books: [
-      { lat: 40.7332, lng: -73.9909, name: "The Strand", 
-        desc: "Librería icónica de Manhattan desde 1927. 18 millas de libros en tres plantas junto a Union Square." },
-      { lat: 40.7175, lng: -73.9621, name: "McNally Jackson (Nolita)", 
-        desc: "Librería literaria indie en Nolita con café, selección internacional y eventos de autor casi diarios." },
-      { lat: 40.6947, lng: -73.9945, name: "Books Are Magic", 
-        desc: "Librería de barrio en Cobble Hill, Brooklyn, fundada por la novelista Emma Straub en 2017. Eventos literarios casi cada noche." },
-      { lat: 40.6862, lng: -73.9746, name: "Greenlight Bookstore", 
-        desc: "Referente de Fort Greene desde 2009. Programación intensa de lecturas y colaboración con el Brooklyn Academy of Music." },
-      { lat: 40.8121, lng: -73.9426, name: "Revolution Books", 
-        desc: "Librería activista en Harlem con fondo en inglés y español. Voluntarios, eventos políticos y literarios." },
-      { lat: 40.7245, lng: -73.9964, name: "Housing Works Bookstore Cafe", 
-        desc: "Librería-café en Soho donde el 100% de los beneficios va a su ONG de apoyo a personas con VIH/SIDA." },
+      { lat: 40.7332, lng: -73.9909, name: "The Strand", desc: "Librería icónica de Manhattan desde 1927. 18 millas de libros junto a Union Square." },
+      { lat: 40.7175, lng: -73.9621, name: "McNally Jackson", desc: "Librería literaria indie en Nolita con café, selección internacional y eventos de autor casi diarios." },
+      { lat: 40.6947, lng: -73.9945, name: "Books Are Magic", desc: "Librería de barrio en Cobble Hill, Brooklyn, fundada por la novelista Emma Straub en 2017." },
+      { lat: 40.6862, lng: -73.9746, name: "Greenlight Bookstore", desc: "Referente de Fort Greene desde 2009. Colaboración con el Brooklyn Academy of Music." },
+      { lat: 40.8121, lng: -73.9426, name: "Revolution Books", desc: "Librería activista en Harlem con fondo en inglés y español. Voluntarios y eventos literarios." },
+      { lat: 40.7245, lng: -73.9964, name: "Housing Works Bookstore", desc: "Librería-café en Soho donde el 100% de los beneficios va a su ONG de apoyo a personas con VIH/SIDA." }
     ],
     multi: [
       { lat: 40.7931, lng: -73.9513, name: "El Museo del Barrio", desc: "Institución cultural latinoamericana y caribeña en East Harlem." },
@@ -433,9 +188,8 @@ const DATA = {
       { lat: 40.7036, lng: -73.9928, name: "St. Ann's Warehouse", desc: "Espacio para teatro experimental y performances en DUMBO." },
       { lat: 40.7263, lng: -73.9901, name: "La MaMa ETC", desc: "Teatro experimental fundado en 1961. Referente del teatro off-Broadway." },
       { lat: 40.7361, lng: -74.0095, name: "The Kitchen", desc: "Centro de artes de vanguardia en Chelsea con danza, teatro y vídeo." },
-      { lat: 40.7257, lng: -73.9778, name: "Museum of Reclaimed Urban Space",desc: "Museo alternativo en el Lower East Side dedicado al activismo urbano y los huertos comunitarios. Alojado en uno de los últimos squats habitados de Manhattan." },
-      { lat: 40.8175, lng: -73.9273, name: "Hostos Center for the Arts",desc: "Centro de artes escénicas y visuales en el South Bronx, dentro del Hostos Community College. Programación orientada a la comunidad latina del Bronx." }
-
+      { lat: 40.7257, lng: -73.9778, name: "Museum of Reclaimed Urban Space", desc: "Museo alternativo en el Lower East Side dedicado al activismo urbano. En uno de los últimos squats de Manhattan." },
+      { lat: 40.8175, lng: -73.9273, name: "Hostos Center for the Arts", desc: "Centro de artes escénicas en el South Bronx. Programación orientada a la comunidad latina del Bronx." }
     ],
     tourist: [
       { lat: 40.6892, lng: -74.0445, name: "Estatua de la Libertad", desc: "Hito turístico. 4,5 millones de visitantes anuales." },
@@ -443,158 +197,164 @@ const DATA = {
       { lat: 40.7555, lng: -73.9858, name: "Times Square", desc: "Centro turístico y comercial. 50 millones de visitantes/año." },
       { lat: 40.7827, lng: -73.9653, name: "Central Park", desc: "Parque urbano. 42 millones de visitantes anuales." },
       { lat: 40.7794, lng: -73.9633, name: "The Metropolitan Museum", desc: "Museo más visitado de NYC. 5,9 millones visitantes/año." },
-    ]
+      { lat: 40.7061, lng: -73.9969, name: "Brooklyn Bridge", desc: "Puente icónico que conecta Manhattan y Brooklyn." },
+      { lat: 40.7127, lng: -74.0134, name: "One World Trade Center", desc: "Rascacielos más alto de Nueva York." },
+      { lat: 40.7587, lng: -73.9787, name: "Rockefeller Center", desc: "Complejo turístico famoso por su mirador y pista de hielo." },
+      { lat: 40.7527, lng: -73.9772, name: "Grand Central Terminal", desc: "Histórica estación ferroviaria de Manhattan." },
+      { lat: 40.7480, lng: -74.0048, name: "High Line", desc: "Parque elevado construido sobre antiguas vías de tren." }
+        ]
   },
-
   paris: {
-    center: { lat: 48.8566, lng: 2.3522 },
-    zoom: 12,
+    center: [48.8566, 2.3522], zoom: 12,
     music: [
-      { lat: 48.8564, lng: 2.3565, name: "38Riv Jazz Club", desc: "Club de jazz íntimo en el Marais, en una cueva abovedada del s. XII. Jazz, latin jazz y funk cada noche. 38, rue de Rivoli." },
-      { lat: 48.8729, lng: 2.3533, name: "New Morning", desc: "Sala legendaria de jazz, blues y world music junto al Canal Saint-Martin desde 1981. Referente de la escena parisina." },
+      { lat: 48.8564, lng: 2.3565, name: "38Riv Jazz Club", desc: "Club de jazz íntimo en el Marais, en una cueva abovedada del s. XII. Jazz, latin jazz y funk cada noche." },
+      { lat: 48.8729, lng: 2.3533, name: "New Morning", desc: "Sala legendaria de jazz, blues y world music junto al Canal Saint-Martin desde 1981." },
       { lat: 48.8598, lng: 2.3479, name: "Le Baiser Salé", desc: "Club de jazz de referencia en Châtelet. Programación diaria de jazz, soul y afrobeat en un sótano icónico." },
       { lat: 48.8502, lng: 2.3697, name: "Supersonic Records", desc: "Sala de música alternativa y tienda de vinilos en Bastille. Indie, punk y electrónica a precios accesibles." },
-      { lat: 48.8700, lng: 2.3916, name: "Studio de l'Ermitage", desc: "Sala íntima de música alternativa en Belleville. Programación ecléctica en un venue de barrio auténtico. 20e arr." },
-      { lat: 48.8957, lng: 2.3285, name: "Le Hasard Ludique", desc: "Antigua estación de la Petite Ceinture reconvertida en sala de conciertos y bar en el 18e. Terraza y programación alternativa." },
+      { lat: 48.8700, lng: 2.3916, name: "Studio de l'Ermitage", desc: "Sala íntima de música alternativa en Belleville. Programación ecléctica en un venue de barrio auténtico." },
+      { lat: 48.8957, lng: 2.3285, name: "Le Hasard Ludique", desc: "Antigua estación de la Petite Ceinture reconvertida en sala de conciertos y bar en el 18e." }
     ],
     gallery: [
-      { lat: 48.8853, lng: 2.3272, name: "Le BAL", desc: "Espacio dedicado a la imagen documental y la fotografía contemporánea en el 18e. Programación sin ánimo de lucro." },
-      { lat: 48.8700, lng: 2.3941, name: "Pavillon Carré de Baudouin", desc: "Espacio de exposiciones de arte contemporáneo en Belleville con jardín. Programación cultural del 20e arr." },
-      { lat: 48.8630, lng: 2.3381, name: "Galerie The Pill", desc: "Galería de arte contemporáneo junto al Centro Pompidou. Arte emergente e internacional. 1er arr." },
+      { lat: 48.8853, lng: 2.3272, name: "Le BAL", desc: "Espacio dedicado a la imagen documental y la fotografía contemporánea en el 18e. Sin ánimo de lucro." },
+      { lat: 48.8700, lng: 2.3941, name: "Pavillon Carré de Baudouin", desc: "Espacio de exposiciones de arte contemporáneo en Belleville con jardín. Programación del 20e arr." },
+      { lat: 48.8630, lng: 2.3381, name: "Galerie The Pill", desc: "Galería de arte contemporáneo junto al Centro Pompidou. Arte emergente e internacional." },
       { lat: 48.8583, lng: 2.3584, name: "Halle des Blancs Manteaux", desc: "Sala de exposiciones temporales de arte y diseño en el corazón del Marais. 4e arr." },
-      { lat: 48.8437, lng: 2.3818, name: "Ground Control", desc: "Antiguo centro logístico de la SNCF reconvertido en espacio creativo con galerías, restaurantes y mercado. 12e arr." },
+      { lat: 48.8437, lng: 2.3818, name: "Ground Control", desc: "Antiguo centro logístico de la SNCF reconvertido en espacio creativo con galerías y mercado. 12e arr." },
+      { lat: 48.8657, lng: 2.3638, name: "DS Galerie", desc: "Galería independiente del Marais centrada en artistas emergentes y exposiciones contemporáneas experimentales." },
+      { lat: 48.8646, lng: 2.3624, name: "193 Gallery", desc: "Galería contemporánea enfocada en artistas internacionales emergentes y diálogos culturales globales." },
+      { lat: 48.8662, lng: 2.3359, name: "LooLooLook Gallery", desc: "Pequeña galería contemporánea con pintura, cerámica, arte textil e instalaciones de artistas emergentes." },
+      { lat: 48.8648, lng: 2.3616, name: "Sato Gallery", desc: "Galería franco-japonesa enfocada en arte contemporáneo y proyectos híbridos entre Asia y Europa." }
     ],
     market: [
-      { lat: 48.8555, lng: 2.3477, name: "Marché aux Fleurs Reine Élizabeth II", desc: "Mercado de flores en la Île de la Cité junto a Notre-Dame. El más antiguo de París. Todos los días 8h–19:30h." },
-      { lat: 48.8253, lng: 2.3087, name: "Marché de la Porte de Vanves", desc: "Mercado de pulgas de ambiente íntimo y local en el 14e. Antigüedades, ropa vintage y curiosidades. Sábados y domingos." },
-      { lat: 48.8491, lng: 2.3275, name: "Marché Raspail Bio", desc: "Mercado ecológico en el boulevard Raspail, Saint-Germain-des-Prés. Productores ecológicos y de temporada. Domingos." },
-      { lat: 48.8412, lng: 2.3249, name: "Marché Edgar Quinet Création", desc: "Mercado de artesanía y creación artística en el bulevar Edgar-Quinet, Montparnasse. Domingos." },
-      { lat: 48.8692, lng: 2.3138, name: "Marché aux Timbres", desc: "Mercado de sellos, postales y monedas en los jardines de los Campos Elíseos. Único en Europa. Jueves, sáb. y dom." },
-      { lat: 48.8840, lng: 2.3533, name: "Marché de Barbès", desc: "Mercado popular y multicultural bajo el metro aéreo en el 18e. Productos africanos, árabes y caribeños. Miérc. y sáb." },
-      { lat: 48.8499, lng: 2.3485, name: "Marché Maubert", desc: "Mercado clásico de barrio en el corazón del Quartier Latin. Productos frescos locales. Martes, jueves y sábados." },
+      { lat: 48.8555, lng: 2.3477, name: "Marché aux Fleurs", desc: "Mercado de flores en la Île de la Cité junto a Notre-Dame. El más antiguo de París." },
+      { lat: 48.8253, lng: 2.3087, name: "Marché de la Porte de Vanves", desc: "Mercado de pulgas íntimo en el 14e. Antigüedades, ropa vintage y curiosidades. Sábados y domingos." },
+      { lat: 48.8491, lng: 2.3275, name: "Marché Raspail Bio", desc: "Mercado ecológico en el boulevard Raspail. Productores ecológicos y de temporada. Domingos." },
+      { lat: 48.8412, lng: 2.3249, name: "Marché Edgar Quinet", desc: "Mercado de artesanía y creación artística en Montparnasse. Domingos." },
+      { lat: 48.8692, lng: 2.3138, name: "Marché aux Timbres", desc: "Mercado de sellos, postales y monedas en los Campos Elíseos. Único en Europa." },
+      { lat: 48.8840, lng: 2.3533, name: "Marché de Barbès", desc: "Mercado popular y multicultural bajo el metro aéreo en el 18e. Productos africanos, árabes y caribeños." },
+      { lat: 48.8499, lng: 2.3485, name: "Marché Maubert", desc: "Mercado clásico de barrio en el Quartier Latin. Productos frescos locales. Martes, jueves y sábados." }
     ],
     books: [
-      { lat: 48.8520, lng: 2.3466, name: "Shakespeare and Company", desc: "Librería inglesa mítica en la orilla izquierda del Sena. Lecturas, eventos y hostal literario desde 1951. 5e arr." },
-      { lat: 48.8727, lng: 2.3638, name: "Artazart", desc: "Librería de arte, diseño y fotografía junto al Canal Saint-Martin. Referente de la escena creativa parisina. 10e arr." },
-      { lat: 48.8544, lng: 2.3844, name: "Violette and Co", desc: "Librería feminista y LGBTQ+ con catálogo de editoriales independientes y rincón de lectura. Rue de Charonne, 11e." },
-      { lat: 48.8630, lng: 2.3621, name: "Comme un Roman", desc: "Librería independiente de referencia en el Marais con selección muy cuidada y encuentros con autores. 3e arr." },
-      { lat: 48.8455, lng: 2.3807, name: "Librairie Charybde", desc: "Especialista en ciencia ficción, fantasía y literatura extraña. La favorita de los lectores alternativos. 12e arr." },
-      { lat: 48.8536, lng: 2.3619, name: "The Red Wheelbarrow Bookstore", desc: "Librería inglesa independiente en el Marais con selección literaria cuidada y eventos regulares. 4e arr." },
-      { lat: 48.8565, lng: 2.3264, name: "Deyrolle", desc: "Legendaria casa de taxidermia del s. XIX reconvertida en espacio único con libros de naturaleza, arte y ciencias. 7e arr." },
+      { lat: 48.8520, lng: 2.3466, name: "Shakespeare and Company", desc: "Librería inglesa mítica en la orilla izquierda del Sena. Lecturas, eventos y hostal literario desde 1951." },
+      { lat: 48.8727, lng: 2.3638, name: "Artazart", desc: "Librería de arte, diseño y fotografía junto al Canal Saint-Martin. Referente de la escena creativa parisina." },
+      { lat: 48.8544, lng: 2.3844, name: "Violette and Co", desc: "Librería feminista y LGBTQ+ con catálogo de editoriales independientes. Rue de Charonne, 11e." },
+      { lat: 48.8630, lng: 2.3621, name: "Comme un Roman", desc: "Librería independiente de referencia en el Marais con selección muy cuidada y encuentros con autores." },
+      { lat: 48.8455, lng: 2.3807, name: "Librairie Charybde", desc: "Especialista en ciencia ficción y literatura extraña. La favorita de los lectores alternativos. 12e arr." },
+      { lat: 48.8536, lng: 2.3619, name: "The Red Wheelbarrow", desc: "Librería inglesa independiente en el Marais con selección literaria cuidada y eventos regulares." },
+      { lat: 48.8565, lng: 2.3264, name: "Deyrolle", desc: "Legendaria casa de taxidermia del s. XIX reconvertida en espacio único con libros de naturaleza y arte." }
     ],
     multi: [
-      { lat: 48.8593, lng: 2.3516, name: "IRCAM", desc: "Centro de investigación musical y creación electroacústica junto al Pompidou. Pionero de la música experimental desde 1977. 4e arr." },
-      { lat: 48.8492, lng: 2.3562, name: "Institut du Monde Arabe", desc: "Instituto cultural de referencia en la Rive Gauche con exposiciones, conciertos y biblioteca. Vista panorámica. 5e arr." },
-      { lat: 48.8645, lng: 2.3621, name: "Le Carreau du Temple", desc: "Antiguo mercado cubierto del Marais reconvertido en espacio multidisciplinar: danza, teatro y artes. 3e arr." },
-      { lat: 48.8847, lng: 2.3706, name: "La Maison des Canaux", desc: "Centro de culturas digitales y creación joven junto al Canal de l'Ourcq en el 19e. Residencias y proyectos." },
-      { lat: 48.8337, lng: 2.3779, name: "La Dame de Canton", desc: "Barcaza flotante en el Sena reconvertida en sala de conciertos, restaurante y terraza. Jazz, folk y world music. 13e arr." },
+      { lat: 48.8593, lng: 2.3516, name: "IRCAM", desc: "Centro de investigación musical y creación electroacústica junto al Pompidou. Pionero desde 1977." },
+      { lat: 48.8492, lng: 2.3562, name: "Institut du Monde Arabe", desc: "Instituto cultural en la Rive Gauche con exposiciones, conciertos y biblioteca. Vista panorámica." },
+      { lat: 48.8645, lng: 2.3621, name: "Le Carreau du Temple", desc: "Antiguo mercado cubierto del Marais reconvertido en espacio multidisciplinar: danza, teatro y artes." },
+      { lat: 48.8847, lng: 2.3706, name: "La Maison des Canaux", desc: "Centro de culturas digitales y creación joven junto al Canal de l'Ourcq en el 19e." },
+      { lat: 48.8337, lng: 2.3779, name: "La Dame de Canton", desc: "Barcaza flotante en el Sena reconvertida en sala de conciertos y terraza. Jazz, folk y world music." },
+      { lat: 48.8924, lng: 2.3691, name: "La Station - Gare des Mines", desc: "Espacio cultural underground con música electrónica, arte experimental y performances." },
+      { lat: 48.8765, lng: 2.3743, name: "Ground Control", desc: "Hub creativo con food hall, conciertos, diseño, ecología y cultura alternativa." },
+      { lat: 48.8956, lng: 2.3286, name: "Le Hasard Ludique", desc: "Centro cultural en una antigua estación de tren con conciertos y talleres." },
+      { lat: 48.8965, lng: 2.3417, name: "La REcyclerie", desc: "Espacio eco-cultural con huerto urbano, café y talleres DIY." },
+      { lat: 48.8590, lng: 2.3470, name: "59 Rivoli", desc: "Edificio artístico autogestionado con talleres abiertos y arte contemporáneo." }
+
     ],
     tourist: [
       { lat: 48.8582, lng: 2.2945, name: "Torre Eiffel", desc: "Hito turístico. 7 millones de visitantes anuales." },
       { lat: 48.8611, lng: 2.3380, name: "Musée du Louvre", desc: "El museo más visitado del mundo. 9,6 millones visitantes/año." },
       { lat: 48.8530, lng: 2.3500, name: "Notre-Dame de París", desc: "Catedral gótica medieval. Hito del turismo europeo." },
-      { lat: 48.8868, lng: 2.3430, name: "Sacré-Cœur (Montmartre)", desc: "Basílica en la cima de la colina de Montmartre. Vista panorámica." },
+      { lat: 48.8868, lng: 2.3430, name: "Sacré-Cœur", desc: "Basílica en la cima de Montmartre. Vista panorámica de París." },
       { lat: 48.8737, lng: 2.2950, name: "Arc de Triomphe", desc: "Monumento en los Campos Elíseos. Símbolo turístico de París." },
+      { lat: 48.8606, lng: 2.3376, name: "Jardín de las Tullerías", desc: "Jardín histórico entre el Louvre y la Plaza de la Concordia." },
+      { lat: 48.8529, lng: 2.3499, name: "Île de la Cité", desc: "Isla histórica en el Sena donde nació París." },
+      { lat: 48.8462, lng: 2.3371, name: "Jardines de Luxemburgo", desc: "Parque emblemático del Barrio Latino." },
+      { lat: 48.8584, lng: 2.3130, name: "Les Invalides", desc: "Complejo histórico que alberga la tumba de Napoleón." },
+      { lat: 48.8656, lng: 2.3212, name: "Place de la Concorde", desc: "Una de las plazas más famosas de París." }
     ]
   }
 };
 
-// ── ESTADO ──────────────────────────────────────────────────────────────────
-let map;
-let currentCity = 'nyc';
-let layerState = { music: true, gallery: true, market: true, books: true, multi: true, tourist: true };
-let markers = {};
-
-// ── COLORES Y ETIQUETAS ──────────────────────────────────────────────────────
 const LAYER_CONFIG = {
   music:   { color: '#c084fc', label: 'Música en vivo' },
   gallery: { color: '#f87171', label: 'Galería indie' },
   market:  { color: '#4ade80', label: 'Mercado alternativo' },
-  books:   { color: '#fbbf24', label: 'Librería independiente' },
+  books:   { color: '#fbac24', label: 'Librería independiente' },
   multi:   { color: '#60a5fa', label: 'Espacio multicultural' },
-  tourist: { color: '#94a3b8', label: 'Hito turístico' },
+  tourist: { color: '#000000', label: 'Hito turístico' },
 };
 
-// ── MAPA ────────────────────────────────────────────────────────────────────
-async function initMap() {
-  const { Map } = await google.maps.importLibrary("maps");
+let currentCity = 'nyc';
+let layerState = { music: true, gallery: true, market: true, books: true, multi: true, tourist: true };
+let layerGroups = {};
 
-  map = new Map(document.getElementById("map"), {
-    zoom: DATA.nyc.zoom,
-    center: DATA.nyc.center,
-    disableDefaultUI: false,
-    styles: [],
-  });
+const map = L.map('map', { zoomControl: true }).setView(DATA.nyc.center, DATA.nyc.zoom);
 
-  // Aplicar estilo oscuro
-  map.setOptions({
-    styles: [
-      { elementType: "geometry", stylers: [{ color: "#1a1a2e" }] },
-      { elementType: "labels.text.stroke", stylers: [{ color: "#1a1a2e" }] },
-      { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
-      { featureType: "road", elementType: "geometry", stylers: [{ color: "#2c2c3e" }] },
-      { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9ca5b3" }] },
-      { featureType: "water", elementType: "geometry", stylers: [{ color: "#0d1b2a" }] },
-      { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#515c6d" }] },
-      { featureType: "poi", elementType: "geometry", stylers: [{ color: "#1e1e2e" }] },
-      { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#6b6b8a" }] },
-      { featureType: "transit", elementType: "geometry", stylers: [{ color: "#1e1e2e" }] },
-      { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#2c2c3e" }] },
-      { featureType: "administrative", elementType: "labels.text.fill", stylers: [{ color: "#8e8ea0" }] },
-    ]
-  });
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+  attribution: '© <a href="https://www.esri.com/">Esri</a>',
+  maxZoom: 16
+}).addTo(map);
 
-  renderCity('nyc');
+function nearestNeighborOrder(points) {
+  const rem = [...points];
+  const out = [rem.shift()];
+  while (rem.length) {
+    const last = out[out.length - 1];
+    let ni = 0, nd = Infinity;
+    rem.forEach((p, i) => {
+      const d = (p.lat - last.lat) ** 2 + (p.lng - last.lng) ** 2;
+      if (d < nd) { nd = d; ni = i; }
+    });
+    out.push(rem.splice(ni, 1)[0]);
+  }
+  return out;
 }
 
 function renderCity(city) {
-  // Limpiar marcadores previos
-  Object.values(markers).flat().forEach(m => m.setMap(null));
-  markers = {};
+  Object.values(layerGroups).forEach(g => map.removeLayer(g));
+  layerGroups = {};
 
   const cityData = DATA[city];
-
   for (const [layer, points] of Object.entries(cityData)) {
     if (layer === 'center' || layer === 'zoom') continue;
     const config = LAYER_CONFIG[layer];
-    markers[layer] = [];
+    const group = L.layerGroup();
 
     points.forEach(pt => {
-      const marker = new google.maps.Marker({
-        map: layerState[layer] ? map : null,
-        position: { lat: pt.lat, lng: pt.lng },
-        title: pt.name,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          fillColor: config.color,
-          fillOpacity: 1,
-          strokeColor: 'rgba(255,255,255,0.3)',
-          strokeWeight: 2,
-          scale: 6,
-        }
+      const circle = L.circleMarker([pt.lat, pt.lng], {
+        radius: 7,
+        fillColor: config.color,
+        color: 'rgba(255,255,255,0.3)',
+        weight: 2,
+        fillOpacity: 1
       });
-      marker.addListener('click', () => showPopup(layer, pt));
-      markers[layer].push(marker);
+      circle.on('click', () => showPopup(layer, pt));
+      group.addLayer(circle);
     });
 
-    // Actualizar contadores
+    if (layer === 'tourist' && points.length > 2) {
+      const ordered = nearestNeighborOrder(points);
+      const poly = L.polygon(ordered.map(p => [p.lat, p.lng]), {
+        color: config.color,
+        weight: 2,
+        dashArray: '6 5',
+        fillColor: config.color,
+        fillOpacity: 0.07,
+        interactive: false,
+      });
+      group.addLayer(poly);
+    }
+
+    layerGroups[layer] = group;
+    if (layerState[layer]) group.addTo(map);
     document.getElementById(`cnt-${layer}`).textContent = points.length;
   }
-
   updateStats();
 }
 
 function toggleLayer(layer) {
   layerState[layer] = !layerState[layer];
-  const item = document.getElementById(`layer-${layer}`);
-  item.classList.toggle('off', !layerState[layer]);
-
-  if (markers[layer]) {
-    markers[layer].forEach(m => {
-      m.setMap(layerState[layer] ? map : null);
-    });
+  document.getElementById(`layer-${layer}`).classList.toggle('off', !layerState[layer]);
+  if (layerGroups[layer]) {
+    if (layerState[layer]) layerGroups[layer].addTo(map);
+    else map.removeLayer(layerGroups[layer]);
   }
-
   updateStats();
 }
 
@@ -603,26 +363,20 @@ function switchCity(city) {
   document.getElementById('btn-nyc').classList.toggle('active', city === 'nyc');
   document.getElementById('btn-paris').classList.toggle('active', city === 'paris');
   document.getElementById('stat-city').textContent = city === 'nyc' ? 'NYC' : 'París';
-
-  map.setCenter(DATA[city].center);
-  map.setZoom(DATA[city].zoom);
+  map.setView(DATA[city].center, DATA[city].zoom);
   renderCity(city);
   closePopup();
 }
 
 function updateStats() {
   const cityData = DATA[currentCity];
-  let total = 0;
-  let visibleLayers = 0;
+  let total = 0, visible = 0;
   for (const [layer, points] of Object.entries(cityData)) {
     if (layer === 'center' || layer === 'zoom') continue;
-    if (layerState[layer]) {
-      total += points.length;
-      visibleLayers++;
-    }
+    if (layerState[layer]) { total += points.length; visible++; }
   }
   document.getElementById('stat-total').textContent = total;
-  document.getElementById('stat-layers').textContent = `${visibleLayers}/6`;
+  document.getElementById('stat-layers').textContent = `${visible}/6`;
 }
 
 function showPopup(layer, pt) {
@@ -638,30 +392,7 @@ function closePopup() {
   document.getElementById('info-popup').classList.remove('visible');
 }
 
-(g => {
-  var h, a, k, p = "The Google Maps JavaScript API",
-    c = "google", l = "importLibrary", q = "__ib__", m = document, b = window;
-  b = b[c] || (b[c] = {});
-  var d = b.maps || (b.maps = {}), r = new Set(), e = new URLSearchParams(),
-    u = () => h || (h = new Promise(async (f, n) => {
-      await (a = m.createElement("script"));
-      e.set("libraries", [...r] + "");
-      for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]);
-      e.set("callback", c + ".maps." + q);
-      a.src = `https://maps.${c}apis.com/maps/api/js?` + e;
-      d[q] = f;
-      a.onerror = () => h = n(Error(p + " could not load."));
-      a.nonce = m.querySelector("script[nonce]")?.nonce || "";
-      m.head.append(a);
-    }));
-  d[l] ? console.warn(p + " only loads once. Ignoring:", g)
-        : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n));
-})({
-  key: "AIzaSyC9ImVuv3C3kBdydS3Jk73rocHhwR1Wwtw",
-  v: "weekly"
-});
-
-initMap();
+renderCity('nyc');
 </script>
 </body>
 </html>
